@@ -596,6 +596,13 @@ const PlayerOps: CommandHandlers = {
         const value = Math.floor((low * (99 - clampedLevel)) / 98) + Math.floor((high * (clampedLevel - 1)) / 98) + 1;
         const chance = Math.floor(JavaRandom.nextDouble() * 256);
 
+        // second-chance skilling buff: a failed roll is rolled once more with a 50% chance to succeed
+        // (only skilling scripts call stat_random; combat has its own rolls)
+        if (value <= chance && Environment.node.skillingSecondChance) {
+            state.pushInt(JavaRandom.nextDouble() < 0.5 ? 1 : 0);
+            return;
+        }
+
         state.pushInt(value > chance ? 1 : 0);
     },
 

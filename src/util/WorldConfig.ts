@@ -22,6 +22,7 @@ export interface WorldConfig {
         members: boolean;
         autoSubscribeMembers: boolean;
         xpRate: number;
+        skillingSecondChance: boolean;
         production: boolean;
         minimumWealthValueEvent: number;
         debug: boolean;
@@ -96,6 +97,7 @@ export function createDefaultWorldConfig(): WorldConfig {
             members: true,
             autoSubscribeMembers: true,
             xpRate: 1,
+            skillingSecondChance: true,
             production: false,
             minimumWealthValueEvent: 10,
             debug: true,
@@ -235,6 +237,7 @@ function migrateFromLegacyEnv(defaults: WorldConfig, env: Record<string, string>
     config.node.members = tryParseBoolean(env.NODE_MEMBERS, config.node.members);
     config.node.autoSubscribeMembers = tryParseBoolean(env.NODE_AUTO_SUBSCRIBE_MEMBERS, config.node.autoSubscribeMembers);
     config.node.xpRate = tryParseInt(env.NODE_XPRATE, config.node.xpRate);
+    config.node.skillingSecondChance = tryParseBoolean(env.NODE_SKILLING_SECOND_CHANCE, config.node.skillingSecondChance);
     config.node.production = tryParseBoolean(env.NODE_PRODUCTION, config.node.production);
     config.node.minimumWealthValueEvent = tryParseInt(env.NODE_MINIMUM_WEALTH_VALUE_EVENT, config.node.minimumWealthValueEvent);
     config.node.debug = tryParseBoolean(env.NODE_DEBUG, config.node.debug);
