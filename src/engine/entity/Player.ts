@@ -1827,7 +1827,7 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        const multi = allowMulti ? Environment.node.xpRate : 1;
+        const multi = allowMulti ? Environment.node.xpRate * Math.max(1, this.getVar(VarPlayerType.getId('relic_xp_factor')) as number) : 1;
         this.stats[stat] += xp * multi;
 
         // cap to 200m, this is represented as "2 billion" because we use 32-bit signed integers and divide by 10 to give us a decimal point
