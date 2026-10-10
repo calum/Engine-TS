@@ -73,6 +73,7 @@ import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
 import Midi from '#/cache/midi/Midi.js';
 
+const RELIC_UNLIMITED_RUN = true; // relic hook: run energy never drains
 const levelExperience = new Int32Array(99);
 
 let acc = 0;
@@ -702,7 +703,7 @@ export default class Player extends PathingEntity {
         if (this.delayed) {
             return;
         }
-        if (this.stepsTaken < 2) {
+        if (this.stepsTaken < 2 || RELIC_UNLIMITED_RUN) {
             const recovered = ((this.baseLevels[PlayerStat.AGILITY] / 6) | 0) + 8;
             this.runenergy = Math.min(this.runenergy + recovered, 10000);
         } else {
