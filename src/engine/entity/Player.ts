@@ -1833,6 +1833,7 @@ export default class Player extends PathingEntity {
         // Clamp before storing: this.stats is an Int32Array, so adding first wrapped a gain past 2^31 to a negative value (relic fix).
         this.stats[stat] = Math.min(2_000_000_000, this.stats[stat] + xp * multi);
         this.relicWellspring(stat, xp * multi);
+        this.relicGreenThumb(stat, xp);
 
         const before = this.baseLevels[stat];
         if (this.levels[stat] === this.baseLevels[stat]) {
@@ -1899,6 +1900,26 @@ export default class Player extends PathingEntity {
         }
         const varp = VarPlayerType.getId('relic_wellspring_xp');
         const script = ScriptProvider.getByName('[queue,relic_wellspring]');
+        if (varp === -1 || !script) {
+            return;
+        }
+        this.setVar(varp, Math.min(2_000_000_000, (this.getVar(varp) as number) + gained));
+        for (const request of this.engineQueue.all()) {
+            if (request.script.id === script.id) {
+                return;
+            }
+        }
+        this.enqueueScript(script, PlayerQueueType.ENGINE);
+    }
+
+    // relic hook: Green Thumb (relic 20, bit 20 of %relic_owned) collects the raw xp gained (tenths, before the xp rate and the relic factor)
+    // in %relic_herb_xp and queues [queue,relic_herbs], which pays it out as herbs. Herblore is excluded (identifying and brewing would feed itself).
+    relicGreenThumb(stat: number, gained: number) {
+        if (stat === PlayerStat.HERBLORE || !(((this.getVar(VarPlayerType.getId('relic_owned')) as number) >>> 20) & 1)) {
+            return;
+        }
+        const varp = VarPlayerType.getId('relic_herb_xp');
+        const script = ScriptProvider.getByName('[queue,relic_herbs]');
         if (varp === -1 || !script) {
             return;
         }
