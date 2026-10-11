@@ -74,6 +74,8 @@ import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
 import Midi from '#/cache/midi/Midi.js';
 
 const RELIC_UNLIMITED_RUN = true; // relic hook: run energy never drains
+const RELIC_FELLOWSHIP_RADIUS = 5; // relic hook: Fellowship reaches players this many tiles away (Chebyshev, same level)
+const RELIC_FELLOWSHIP_XP_PERCENT = 50; // relic hook: share of the owner's xp gain that Fellowship gives to each nearby player
 const levelExperience = new Int32Array(99);
 
 let acc = 0;
@@ -1817,7 +1819,7 @@ export default class Player extends PathingEntity {
         }
     }
 
-    addXp(stat: number, xp: number, allowMulti: boolean = true) {
+    addXp(stat: number, xp: number, allowMulti: boolean = true, shared: boolean = false) {
         // require xp is >= 0. there is no reason for a requested addXp to be negative.
         if (xp < 0) {
             throw new Error(`Invalid xp parameter for addXp call: Stat was: ${stat}, Exp was: ${xp}`);
@@ -1833,7 +1835,10 @@ export default class Player extends PathingEntity {
         // Clamp before storing: this.stats is an Int32Array, so adding first wrapped a gain past 2^31 to a negative value (relic fix).
         this.stats[stat] = Math.min(2_000_000_000, this.stats[stat] + xp * multi);
         this.relicWellspring(stat, xp * multi);
-        this.relicGreenThumb(stat, xp);
+        if (!shared) {
+            this.relicGreenThumb(stat, xp);
+            this.relicFellowship(stat, xp * multi);
+        }
 
         const before = this.baseLevels[stat];
         if (this.levels[stat] === this.baseLevels[stat]) {
@@ -1889,6 +1894,32 @@ export default class Player extends PathingEntity {
         if (this.combatLevel != this.getCombatLevel()) {
             this.combatLevel = this.getCombatLevel();
             this.buildAppearance(this.appearanceInv);
+        }
+    }
+
+    // relic hook: Fellowship (relic 31, bit 31 of %relic_owned) gives every other player within RELIC_FELLOWSHIP_RADIUS tiles (same level, owner or not)
+    // RELIC_FELLOWSHIP_XP_PERCENT of the xp gained (tenths, after the xp rate and the relic factor) in the same skill. The share goes in through addXp with
+    // shared = true, which never shares again, so owners stack but cannot echo. The healing half is ~relic_fellowship_heal (mods/relics/scripts/relic_fellowship.rs2).
+    relicFellowship(stat: number, gained: number) {
+        if (!(((this.getVar(VarPlayerType.getId('relic_owned')) as number) >>> 31) & 1)) {
+            return;
+        }
+        const share = Math.floor((gained * RELIC_FELLOWSHIP_XP_PERCENT) / 100);
+        if (share <= 0) {
+            return;
+        }
+        const minX = CoordGrid.zone(this.x - RELIC_FELLOWSHIP_RADIUS);
+        const maxX = CoordGrid.zone(this.x + RELIC_FELLOWSHIP_RADIUS);
+        const minZ = CoordGrid.zone(this.z - RELIC_FELLOWSHIP_RADIUS);
+        const maxZ = CoordGrid.zone(this.z + RELIC_FELLOWSHIP_RADIUS);
+        for (let zoneX = minX; zoneX <= maxX; zoneX++) {
+            for (let zoneZ = minZ; zoneZ <= maxZ; zoneZ++) {
+                for (const other of World.gameMap.getZone(zoneX << 3, zoneZ << 3, this.level).getAllPlayersSafe()) {
+                    if (other !== this && CoordGrid.distanceToSW(this, other) <= RELIC_FELLOWSHIP_RADIUS) {
+                        other.addXp(stat, share, false, true);
+                    }
+                }
+            }
         }
     }
 
