@@ -1022,6 +1022,13 @@ const ScriptOpcodePointers: {
     },
     [ScriptOpcode.DB_LISTALL_WITH_COUNT]: {
         set: ['find_db']
+    },
+    [ScriptOpcode.NPC_FINDHEROAT]: {
+        require: ['active_npc'],
+        require2: ['active_npc2'],
+        set: ['active_player'],
+        set2: ['active_player2'],
+        conditional: true
     }
 };
 

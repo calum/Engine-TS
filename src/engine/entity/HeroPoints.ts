@@ -34,6 +34,18 @@ export default class HeroPoints extends Array<Hero> {
         }
     }
 
+    /** The hash64 of the hero at damage rank `rank` (0 = most points), or -1n when that rank is empty or out of range. */
+    findHeroAt(rank: number): bigint {
+        if (rank < 0 || rank >= this.length) {
+            return -1n;
+        }
+        const clone = [...this];
+        quicksort(0, this.length - 1, clone, (a: Hero, b: Hero) => {
+            return b.points - a.points;
+        });
+        return clone[rank].points > 0 ? clone[rank].hash64 : -1n;
+    }
+
     findHero(): bigint {
         // We clone the array because it should not be permanently sorted
         const clone = [...this];

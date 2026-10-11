@@ -446,6 +446,8 @@ export const enum ScriptOpcode {
     DB_FIND_REFINE,
     DB_LISTALL,
 
+    NPC_FINDHEROAT, // custom (relic mode): active_player = the nth biggest damager of the active npc
+
     // Debug ops (10000-11000)
     CONSOLE = 10000,
     ERROR,
@@ -871,6 +873,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['DB_FIND', ScriptOpcode.DB_FIND],
     ['DB_FIND_REFINE', ScriptOpcode.DB_FIND_REFINE],
     ['DB_LISTALL', ScriptOpcode.DB_LISTALL],
+
+    ['NPC_FINDHEROAT', ScriptOpcode.NPC_FINDHEROAT],
 
     ['CONSOLE', ScriptOpcode.CONSOLE],
     ['ERROR', ScriptOpcode.ERROR],

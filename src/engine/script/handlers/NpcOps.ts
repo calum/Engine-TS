@@ -38,6 +38,20 @@ import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 
 const NpcOps: CommandHandlers = {
+    // custom: like npc_findhero, but for the player at damage rank $rank (0 = most damage). Pushes 0 for an empty rank or an offline player.
+    [ScriptOpcode.NPC_FINDHEROAT]: state => {
+        const hash64 = state.activeNpc.heroPoints.findHeroAt(state.popInt());
+        const player = hash64 === -1n ? null : World.getPlayerByHash64(hash64);
+        if (!player) {
+            state.pushInt(0);
+            return;
+        }
+
+        state.activePlayer = player;
+        state.pointerAdd(ActivePlayer[state.intOperand]);
+        state.pushInt(1);
+    },
+
     [ScriptOpcode.NPC_FINDUID]: state => {
         const npcUid = state.popInt();
         const slot = npcUid & 0xffff;
