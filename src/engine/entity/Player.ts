@@ -1830,6 +1830,7 @@ export default class Player extends PathingEntity {
 
         const multi = allowMulti ? Environment.node.xpRate * Math.max(1, this.getVar(VarPlayerType.getId('relic_xp_factor')) as number) : 1;
         this.stats[stat] += xp * multi;
+        this.relicWellspring(stat, xp * multi);
 
         // cap to 200m, this is represented as "2 billion" because we use 32-bit signed integers and divide by 10 to give us a decimal point
         if (this.stats[stat] > 2_000_000_000) {
@@ -1891,6 +1892,26 @@ export default class Player extends PathingEntity {
             this.combatLevel = this.getCombatLevel();
             this.buildAppearance(this.appearanceInv);
         }
+    }
+
+    // relic hook: Rune Wellspring (relic 21, bit 21 of %relic_owned) collects the xp gained (tenths) in %relic_wellspring_xp and
+    // queues [queue,relic_wellspring], which pays it out as bundles. Runecrafting is excluded (crafting bundles would feed itself).
+    relicWellspring(stat: number, gained: number) {
+        if (stat === PlayerStat.RUNECRAFT || !(((this.getVar(VarPlayerType.getId('relic_owned')) as number) >>> 21) & 1)) {
+            return;
+        }
+        const varp = VarPlayerType.getId('relic_wellspring_xp');
+        const script = ScriptProvider.getByName('[queue,relic_wellspring]');
+        if (varp === -1 || !script) {
+            return;
+        }
+        this.setVar(varp, Math.min(2_000_000_000, (this.getVar(varp) as number) + gained));
+        for (const request of this.engineQueue.all()) {
+            if (request.script.id === script.id) {
+                return;
+            }
+        }
+        this.enqueueScript(script, PlayerQueueType.ENGINE);
     }
 
     changeStat(stat: number) {
