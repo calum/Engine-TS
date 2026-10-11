@@ -89,6 +89,10 @@ export class PlayerLoading {
 
         for (let i = 0; i < 21; i++) {
             player.stats[i] = sav.g4s();
+            if (player.stats[i] < 0) {
+                // relic fix: addXp used to wrap past 2^31 to a negative value, which can only happen past the 200m cap
+                player.stats[i] = 2_000_000_000;
+            }
             player.baseLevels[i] = getLevelByExp(player.stats[i]);
             player.levels[i] = sav.g1();
         }
