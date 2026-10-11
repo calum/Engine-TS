@@ -11,6 +11,7 @@ import { ParamHelper } from '#/cache/config/ParamHelper.js';
 import ParamType from '#/cache/config/ParamType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import SeqType from '#/cache/config/SeqType.js';
+import SpotanimType from '#/cache/config/SpotanimType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
@@ -75,6 +76,7 @@ import Midi from '#/cache/midi/Midi.js';
 
 const RELIC_UNLIMITED_RUN = true; // relic hook: run energy never drains
 const RELIC_FELLOWSHIP_RADIUS = 5; // relic hook: Fellowship reaches players this many tiles away (Chebyshev, same level)
+const RELIC_FELLOWSHIP_GLOW_TICKS = 4; // relic hook: a receiver's XP glow is replayed at most this often
 const RELIC_FELLOWSHIP_XP_PERCENT = 50; // relic hook: share of the owner's xp gain that Fellowship gives to each nearby player
 const levelExperience = new Int32Array(99);
 
@@ -1917,10 +1919,25 @@ export default class Player extends PathingEntity {
                 for (const other of World.gameMap.getZone(zoneX << 3, zoneZ << 3, this.level).getAllPlayersSafe()) {
                     if (other !== this && CoordGrid.distanceToSW(this, other) <= RELIC_FELLOWSHIP_RADIUS) {
                         other.addXp(stat, share, false, true);
+                        other.relicFellowshipGlow();
                     }
                 }
             }
         }
+    }
+
+    // relic hook: gold spotanim on the feet of a player who just received shared XP, at most every RELIC_FELLOWSHIP_GLOW_TICKS ticks
+    // (an XP share arrives with every action, replaying the effect each time would flicker). Shared healing plays its green one in RuneScript.
+    relicFellowshipGlow() {
+        if (World.currentTick < this.relicGlowTick + RELIC_FELLOWSHIP_GLOW_TICKS) {
+            return;
+        }
+        const glow = SpotanimType.getId('relic_fellowship_xp');
+        if (glow === -1) {
+            return;
+        }
+        this.relicGlowTick = World.currentTick;
+        this.spotanim(glow, 0, 0);
     }
 
     // relic hook: Rune Wellspring (relic 21, bit 21 of %relic_owned) collects the xp gained (tenths) in %relic_wellspring_xp and
@@ -1999,6 +2016,8 @@ export default class Player extends PathingEntity {
             this.masks |= PlayerInfoProt.ANIM;
         }
     }
+
+    relicGlowTick = -RELIC_FELLOWSHIP_GLOW_TICKS; // relic hook: tick of the last Fellowship XP glow
 
     spotanim(spotanim: number, height: number, delay: number) {
         this.spotanimId = spotanim;
