@@ -24,6 +24,7 @@ export interface WorldConfig {
         xpRate: number;
         skillingSecondChance: boolean;
         production: boolean;
+        accessCode: string;
         minimumWealthValueEvent: number;
         debug: boolean;
         debugProfile: boolean;
@@ -99,6 +100,7 @@ export function createDefaultWorldConfig(): WorldConfig {
             xpRate: 1,
             skillingSecondChance: true,
             production: false,
+            accessCode: '',
             minimumWealthValueEvent: 10,
             debug: true,
             debugProfile: false,
@@ -239,6 +241,7 @@ function migrateFromLegacyEnv(defaults: WorldConfig, env: Record<string, string>
     config.node.xpRate = tryParseInt(env.NODE_XPRATE, config.node.xpRate);
     config.node.skillingSecondChance = tryParseBoolean(env.NODE_SKILLING_SECOND_CHANCE, config.node.skillingSecondChance);
     config.node.production = tryParseBoolean(env.NODE_PRODUCTION, config.node.production);
+    config.node.accessCode = tryParseString(env.NODE_ACCESS_CODE, config.node.accessCode);
     config.node.minimumWealthValueEvent = tryParseInt(env.NODE_MINIMUM_WEALTH_VALUE_EVENT, config.node.minimumWealthValueEvent);
     config.node.debug = tryParseBoolean(env.NODE_DEBUG, config.node.debug);
     config.node.debugProfile = tryParseBoolean(env.NODE_DEBUG_PROFILE, config.node.debugProfile);

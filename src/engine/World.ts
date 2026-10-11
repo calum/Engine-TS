@@ -89,6 +89,7 @@ import {
     trackPlayerCount,
     trackSessionEventsPublished
 } from '#/server/Metrics.js';
+import { accessCodeAllows } from '#/util/AccessCode.js';
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
@@ -2219,6 +2220,13 @@ class World {
             }
 
             if (password.length < 1 || password.length > 20) {
+                client.send(Uint8Array.from([3]));
+                client.close();
+                return;
+            }
+
+            if (!accessCodeAllows(Environment.node.accessCode, password)) {
+                // wrong access code (typed as the password): same reply as an invalid password
                 client.send(Uint8Array.from([3]));
                 client.close();
                 return;
