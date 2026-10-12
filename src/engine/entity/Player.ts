@@ -1832,7 +1832,7 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        const multi = allowMulti ? Environment.node.xpRate * Math.max(1, this.getVar(VarPlayerType.getId('relic_xp_factor')) as number) : 1;
+        const multi = allowMulti ? Environment.node.xpRate * Math.max(1, this.getVar(VarPlayerType.getId('relic_quest_xp_off')) ? 1 : (this.getVar(VarPlayerType.getId('relic_xp_factor')) as number)) : 1;
         // cap to 200m, this is represented as "2 billion" because we use 32-bit signed integers and divide by 10 to give us a decimal point.
         // Clamp before storing: this.stats is an Int32Array, so adding first wrapped a gain past 2^31 to a negative value (relic fix).
         this.stats[stat] = Math.min(2_000_000_000, this.stats[stat] + xp * multi);
