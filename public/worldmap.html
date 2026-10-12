@@ -12,6 +12,9 @@
         #results li { padding: 4px 7px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
         #results li:hover, #results li.sel { background: #5a4a14; }
         #results .meta { color: #bbb; white-space: nowrap; }
+        #nav { display: none; margin-top: 2px; align-items: center; gap: 4px; }
+        #nav button { padding: 3px 9px; cursor: pointer; }
+        #count { color: #fff; text-shadow: 1px 1px #000; }
         #hint { margin-top: 2px; color: #ddd; text-shadow: 1px 1px #000; font-size: 11px; }
     </style>
 </head>
@@ -20,7 +23,8 @@
     <div id="search">
         <input id="q" type="text" placeholder="Search NPCs, items, objects (e.g. mithril, giant, knife)" autocomplete="off" spellcheck="false">
         <ul id="results"></ul>
-        <div id="hint">Locs use internal names (rocks: mithrilrock1). Items: ground spawns only.</div>
+        <div id="nav"><button id="prev" title="Previous (Shift+Enter or Shift+F3)">&#9664; Prev</button><button id="next" title="Next (Enter or F3)">Next &#9654;</button><span id="count"></span></div>
+        <div id="hint">Enter / F3: next spawn, Shift+Enter / Shift+F3: previous. Locs use internal names (rocks: mithrilrock1). Items: ground spawns only.</div>
     </div>
     <script type="module">
         import { MapView } from './client/mapview.js';
@@ -44,17 +48,39 @@
                 meta.className = 'meta';
                 meta.textContent = r.entry.kind + ' · ' + r.count;
                 li.append(name, meta);
-                li.onclick = () => pick(i);
+                li.onclick = () => {
+                    q.dataset.picked = q.value;
+                    pick(i);
+                };
                 list.appendChild(li);
             });
         }
 
+        const nav = document.getElementById('nav');
+        const count = document.getElementById('count');
+        let selected = false;
+
         async function pick(i) {
             const r = results[i];
             if (!r) return;
-            hint.textContent = r.entry.name + ': ' + r.count + ' spawn' + (r.count === 1 ? '' : 's') + ' (yellow rings). Esc clears.';
-            await window.worldMapSearch.select(r.entry);
+            selected = true;
+            nav.style.display = 'flex';
+            hint.textContent = r.entry.name + ': ' + r.count + ' spawn' + (r.count === 1 ? '' : 's') + ' (yellow rings). Enter or F3: next, Shift+Enter: previous, Esc: clear.';
+            count.textContent = await window.worldMapSearch.select(r.entry);
         }
+
+        async function step(d) {
+            if (selected) count.textContent = await window.worldMapSearch.step(d);
+        }
+
+        document.getElementById('prev').onclick = () => step(-1);
+        document.getElementById('next').onclick = () => step(1);
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F3') {
+                e.preventDefault();
+                step(e.shiftKey ? -1 : 1);
+            }
+        });
 
         q.addEventListener('input', () => {
             clearTimeout(timer);
@@ -64,9 +90,18 @@
             }, 120);
         });
         q.addEventListener('keydown', e => {
-            if (e.key === 'Enter') pick(0);
+            if (e.key === 'Enter') {
+                if (selected && q.dataset.picked === q.value) step(e.shiftKey ? -1 : 1);
+                else {
+                    q.dataset.picked = q.value;
+                    pick(0);
+                }
+            }
             if (e.key === 'Escape') {
                 q.value = '';
+                q.dataset.picked = '';
+                selected = false;
+                nav.style.display = 'none';
                 results = [];
                 show();
                 window.worldMapSearch.clear();
