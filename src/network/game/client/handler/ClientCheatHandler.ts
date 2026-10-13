@@ -54,6 +54,20 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
             player.addSessionLog(LoggerEventType.MODERATOR, 'Ran cheat', cheat);
         }
 
+        // custom (mods): commands open to every player, no staff level needed. ::<cmd> runs [label,playercmd_<cmd>](string $args)
+        // with protected access; $args is the rest of the line, lowercased, with underscores turned into spaces (like a username).
+        const playerCmd = ScriptProvider.getByName(`[label,playercmd_${cmd}]`);
+        if (playerCmd) {
+            if (!player.canAccess()) {
+                player.messageGame('Please finish what you are doing first.');
+                return false;
+            }
+
+            player.closeModal();
+            player.executeScript(ScriptRunner.init(playerCmd, player, null, [args.join(' ').replace(/_/g, ' ').trim()]), true);
+            return true;
+        }
+
         if (!Environment.node.production && player.staffModLevel >= 4) {
             // developer commands
 

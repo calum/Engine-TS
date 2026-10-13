@@ -447,6 +447,8 @@ export const enum ScriptOpcode {
     DB_LISTALL,
 
     NPC_FINDHEROAT, // custom (relic mode): active_player = the nth biggest damager of the active npc
+    WORLD_PLAYERUID, // custom (regroup): the uid of the nth signed-in player
+    UID_TOINT, // custom (regroup): a player_uid as a plain int
 
     // Debug ops (10000-11000)
     CONSOLE = 10000,
@@ -875,6 +877,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['DB_LISTALL', ScriptOpcode.DB_LISTALL],
 
     ['NPC_FINDHEROAT', ScriptOpcode.NPC_FINDHEROAT],
+    ['WORLD_PLAYERUID', ScriptOpcode.WORLD_PLAYERUID],
+    ['UID_TOINT', ScriptOpcode.UID_TOINT],
 
     ['CONSOLE', ScriptOpcode.CONSOLE],
     ['ERROR', ScriptOpcode.ERROR],

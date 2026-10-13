@@ -127,6 +127,28 @@ const ServerOps: CommandHandlers = {
         state.pushInt(World.getTotalPlayers());
     },
 
+    // custom (regroup): the uid of the nth (0-based) signed-in player in slot order, for finduid; -1 when there is no such player.
+    // A player keeps their slot while online, so the order only changes when someone logs in or out.
+    [ScriptOpcode.WORLD_PLAYERUID]: state => {
+        let index = state.popInt();
+        for (let slot = 1; slot < 2047; slot++) {
+            const player = World.getPlayer(slot);
+            if (typeof player === 'undefined') {
+                continue;
+            }
+            if (index-- === 0) {
+                state.pushInt(player.uid);
+                return;
+            }
+        }
+        state.pushInt(-1);
+    },
+
+    // custom (regroup): a player_uid as a plain int (RuneScript has no cast), e.g. to build a fingerprint of a list of players.
+    [ScriptOpcode.UID_TOINT]: state => {
+        state.pushInt(state.popInt());
+    },
+
     [ScriptOpcode.MAP_BLOCKED]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
 
