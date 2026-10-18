@@ -22,6 +22,23 @@ import { Packet } from './packet.js';
 import { Npc } from './npc.js';
 import { Player } from './player.js';
 
+/**
+ * The npc info DAMAGE block carries current and base hitpoints as one byte each (NpcInfoDamage, messages.ts), and the
+ * client reads them with g1 (Client-TS Client.ts HITMARK handling), so a base above 255 wraps and shows a wrong health bar.
+ * Scale both down proportionally so the bar stays right for bosses such as the Mad Angel (755 hitpoints, mods/madangel).
+ * A living npc never rounds down to an empty bar.
+ */
+export function scaleNpcHitpoints(current: number, base: number): [number, number] {
+    if (base <= 255) {
+        return [current, base];
+    }
+    let scaled = Math.round((current * 255) / base);
+    if (current > 0 && scaled < 1) {
+        scaled = 1;
+    }
+    return [Math.min(255, scaled), 255];
+}
+
 function encodeInfo(messages: Array<Uint8Array | null>, id: number, message: InfoMessage): number {
     const buf = new Packet(message.test());
     message.encode(buf);
@@ -175,10 +192,12 @@ export class NpcRenderer {
             highs += this.cache(nid, new NpcInfoSay(npc.say), NpcInfoProt.SAY);
         }
         if ((masks & NpcInfoProt.DAMAGE) !== 0) {
-            highs += this.cache(nid, new NpcInfoDamage(npc.damageTaken, npc.damageType, npc.currentHitpoints, npc.baseHitpoints), NpcInfoProt.DAMAGE);
+            const [current, base] = scaleNpcHitpoints(npc.currentHitpoints, npc.baseHitpoints);
+            highs += this.cache(nid, new NpcInfoDamage(npc.damageTaken, npc.damageType, current, base), NpcInfoProt.DAMAGE);
         }
         if ((masks & NpcInfoProt.DAMAGE2) !== 0) {
-            highs += this.cache(nid, new NpcInfoDamage(npc.damageTaken2, npc.damageType2, npc.currentHitpoints, npc.baseHitpoints), NpcInfoProt.DAMAGE2);
+            const [current, base] = scaleNpcHitpoints(npc.currentHitpoints, npc.baseHitpoints);
+            highs += this.cache(nid, new NpcInfoDamage(npc.damageTaken2, npc.damageType2, current, base), NpcInfoProt.DAMAGE2);
         }
         if ((masks & NpcInfoProt.CHANGE_TYPE) !== 0) {
             highs += this.cache(nid, new NpcInfoChangeType(npc.ntype), NpcInfoProt.CHANGE_TYPE);
