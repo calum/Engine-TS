@@ -31,7 +31,13 @@ export default class IfButtonHandler extends ClientGameMessageHandler<IfButton> 
             const script = ScriptProvider.getByTriggerSpecific(ServerTriggerType.IF_BUTTON, comId, -1);
             if (script) {
                 const root = Component.get(com.rootLayer);
-                player.executeScript(ScriptRunner.init(script, player), root.overlay == false);
+                // local change: prayer toggles do not cancel the current attack / walk-to-target (node.prayerKeepsAction)
+                player.keepPendingAction = Environment.node.prayerKeepsAction && (com.comName?.startsWith('prayer:') ?? false);
+                try {
+                    player.executeScript(ScriptRunner.init(script, player), root.overlay == false);
+                } finally {
+                    player.keepPendingAction = false;
+                }
             } else if (Environment.node.debug) {
                 player.messageGame(`No trigger for [if_button,${com.comName}]`);
             }

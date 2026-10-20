@@ -23,6 +23,7 @@ export interface WorldConfig {
         autoSubscribeMembers: boolean;
         xpRate: number;
         skillingSecondChance: boolean;
+        prayerKeepsAction: boolean;
         production: boolean;
         accessCode: string;
         minimumWealthValueEvent: number;
@@ -99,6 +100,7 @@ export function createDefaultWorldConfig(): WorldConfig {
             autoSubscribeMembers: true,
             xpRate: 1,
             skillingSecondChance: true,
+            prayerKeepsAction: true,
             production: false,
             accessCode: '',
             minimumWealthValueEvent: 10,
@@ -240,6 +242,7 @@ function migrateFromLegacyEnv(defaults: WorldConfig, env: Record<string, string>
     config.node.autoSubscribeMembers = tryParseBoolean(env.NODE_AUTO_SUBSCRIBE_MEMBERS, config.node.autoSubscribeMembers);
     config.node.xpRate = tryParseInt(env.NODE_XPRATE, config.node.xpRate);
     config.node.skillingSecondChance = tryParseBoolean(env.NODE_SKILLING_SECOND_CHANCE, config.node.skillingSecondChance);
+    config.node.prayerKeepsAction = tryParseBoolean(env.NODE_PRAYER_KEEPS_ACTION, config.node.prayerKeepsAction);
     config.node.production = tryParseBoolean(env.NODE_PRODUCTION, config.node.production);
     config.node.accessCode = tryParseString(env.NODE_ACCESS_CODE, config.node.accessCode);
     config.node.minimumWealthValueEvent = tryParseInt(env.NODE_MINIMUM_WEALTH_VALUE_EVENT, config.node.minimumWealthValueEvent);

@@ -433,6 +433,9 @@ const PlayerOps: CommandHandlers = {
 
     // https://x.com/JagexAsh/status/1780230057023181259
     [ScriptOpcode.P_CLEARPENDINGACTION]: state => {
+        if (state.activePlayer.keepPendingAction) {
+            return; // local change: set by IfButtonHandler while a prayer button script runs
+        }
         state.activePlayer.clearPendingAction();
     },
 

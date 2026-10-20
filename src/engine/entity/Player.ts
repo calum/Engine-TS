@@ -971,6 +971,9 @@ export default class Player extends PathingEntity {
         this.unsetMapFlag();
     }
 
+    // while true, p_clearpendingaction is a no-op (prayer toggles, see IfButtonHandler)
+    keepPendingAction: boolean = false;
+
     // clear current interaction but leave walk queue intact
     clearPendingAction() {
         this.clearInteraction();
