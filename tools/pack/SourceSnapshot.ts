@@ -50,8 +50,9 @@ export class SourceSnapshot {
                 }
 
                 const key = makeKey(root, ext);
-                const current = this.latest.get(key) ?? 0;
                 const modified = (await fs.stat(target)).mtimeMs;
+                // read after the await: concurrent walkers may have raised it meanwhile
+                const current = this.latest.get(key) ?? 0;
                 if (modified > current) {
                     this.latest.set(key, modified);
                 }
