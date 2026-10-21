@@ -449,6 +449,8 @@ export const enum ScriptOpcode {
     NPC_FINDHEROAT, // custom (relic mode): active_player = the nth biggest damager of the active npc
     WORLD_PLAYERUID, // custom (regroup): the uid of the nth signed-in player
     UID_TOINT, // custom (regroup): a player_uid as a plain int
+    WORLD_FLAG_GET, // custom (secret run): a persisted world-wide int flag
+    WORLD_FLAG_SET, // custom (secret run): set it (saved to data/world-flags.json)
 
     // Debug ops (10000-11000)
     CONSOLE = 10000,
@@ -879,6 +881,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NPC_FINDHEROAT', ScriptOpcode.NPC_FINDHEROAT],
     ['WORLD_PLAYERUID', ScriptOpcode.WORLD_PLAYERUID],
     ['UID_TOINT', ScriptOpcode.UID_TOINT],
+    ['WORLD_FLAG_GET', ScriptOpcode.WORLD_FLAG_GET],
+    ['WORLD_FLAG_SET', ScriptOpcode.WORLD_FLAG_SET],
 
     ['CONSOLE', ScriptOpcode.CONSOLE],
     ['ERROR', ScriptOpcode.ERROR],
