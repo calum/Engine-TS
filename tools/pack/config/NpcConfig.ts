@@ -61,7 +61,7 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if (key === 'size' && (number < 0 || number > 5)) {
+        if (key === 'size' && (number < 0 || number > 7)) {
             return null;
         }
 
