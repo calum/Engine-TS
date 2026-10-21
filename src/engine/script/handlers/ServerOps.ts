@@ -10,6 +10,7 @@ import ScriptState from '#/engine/script/ScriptState.js';
 import { check, CoordValid, LocTypeValid, NumberPositive, SeqTypeValid, SpotAnimTypeValid, FindSquareValid } from '#/engine/script/ScriptValidators.js';
 import World from '#/engine/World.js';
 import Environment from '#/util/Environment.js';
+import WorldFlags from '#/util/WorldFlags.js';
 import Midi from '#/cache/midi/Midi.js';
 
 const ServerOps: CommandHandlers = {
@@ -147,6 +148,16 @@ const ServerOps: CommandHandlers = {
     // custom (regroup): a player_uid as a plain int (RuneScript has no cast), e.g. to build a fingerprint of a list of players.
     [ScriptOpcode.UID_TOINT]: state => {
         state.pushInt(state.popInt());
+    },
+
+    // custom (secret run): world-wide persisted int flags, shared by every player (src/util/WorldFlags.ts)
+    [ScriptOpcode.WORLD_FLAG_GET]: state => {
+        state.pushInt(WorldFlags.get(state.popInt()));
+    },
+
+    [ScriptOpcode.WORLD_FLAG_SET]: state => {
+        const [id, value] = state.popInts(2);
+        WorldFlags.set(id, value);
     },
 
     [ScriptOpcode.MAP_BLOCKED]: state => {
